@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.josemiguelhyb.fastbank.model.Account;
 import com.josemiguelhyb.fastbank.model.Transaction;
@@ -38,8 +40,8 @@ public class TransactionServiceImpl implements TransactionService {
 		
 		try {
 			// 1. Buscar la cuoenta por ID
-			Account account = accountRepository.findByIdForUpdate(accountId)
-					.orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+	    Account account = accountRepository.findByIdForUpdate(accountId)
+		    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cuenta no encontrada"));
 			
 			// 2. Actualizar el saldo de la cuenta
 			BigDecimal nuevoSaldo = account.getBalance().add(amount); // conversión explícita
@@ -87,12 +89,12 @@ public class TransactionServiceImpl implements TransactionService {
 
 		try {
 			// 1. Buscar la cuenta
-			Account account = accountRepository.findByIdForUpdate(accountId)
-					.orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+	    Account account = accountRepository.findByIdForUpdate(accountId)
+		    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cuenta no encontrada"));
 
 			// 2. Verificar saldo suficiente
 			if (account.getBalance().compareTo(amount) < 0) {
-				throw new RuntimeException("Saldo insuficiente");
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Saldo insuficiente");
 			}
 
 			// 3. Actualizar saldo
@@ -125,17 +127,17 @@ public class TransactionServiceImpl implements TransactionService {
 		
 		try {			
 			// 1. Buscar las cuentas con bloqueo pesimista
-			Account from = accountRepository.findByIdForUpdate(fromAccountId)
-					.orElseThrow(() -> new RuntimeException("Cuenta origen no encontrada"));
+	    Account from = accountRepository.findByIdForUpdate(fromAccountId)
+		    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cuenta origen no encontrada"));
 			
-			Account to = accountRepository.findByIdForUpdate(toAccountId)
-					.orElseThrow(() -> new RuntimeException("Cuenta destino no encontrada"));
+	    Account to = accountRepository.findByIdForUpdate(toAccountId)
+		    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cuenta destino no encontrada"));
 			
 			//LOGICA DE LA TRANSFERENCIA IGUAL
 			// 2. Comprobar el saldo
 			// comparteTo devuelve: -1 si es menor, 0 si es igual, 1 si es mayor
 			if(from.getBalance().compareTo(amount) < 0) {
-				throw new RuntimeException("Saldo insuficiente");
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Saldo insuficiente");
 			}
 			
 			// 3. Actualizar los saltos de ambas cuentas

@@ -72,94 +72,153 @@ public class TransactionController {
 	
 	@PostMapping("/test/concurrent-deposits")
 	public ResponseEntity<String> testConcurrentDeposits(@RequestBody CreateTransactionRequest request) {
-		int numThreads = 10; // número de hilos (simular 10 depósitos)
-		BigDecimal amountPerDeposit = request.getAmount(); // cantidad por depósito
+		int numThreads = 10;
+		BigDecimal amountPerDeposit = request.getAmount();
 		Long accountId = request.getToAccountId();
-		
-		
-		// Crear y Lanzar hilos
+
+		java.util.concurrent.atomic.AtomicReference<Integer> statusCode = new java.util.concurrent.atomic.AtomicReference<>(200);
+		java.util.concurrent.atomic.AtomicReference<String> errorMessage = new java.util.concurrent.atomic.AtomicReference<>(null);
+
 		List<Thread> threads = new java.util.ArrayList<>();
-		
 		for (int i = 0; i < numThreads; i++) {
-	        Thread t = new Thread(() -> {
-	            transactionService.deposit(accountId, amountPerDeposit);
-	        });
-	        threads.add(t);
-	        t.start();
-	    }
+			Thread t = new Thread(() -> {
+				try {
+					transactionService.deposit(accountId, amountPerDeposit);
+				} catch (org.springframework.web.server.ResponseStatusException ex) {
+					// Guardar el primer error significativo
+					if (statusCode.get() == 200) {
+						statusCode.set(ex.getStatusCode().value());
+						if (ex.getStatusCode().value() == 404) {
+							errorMessage.set("ERROR: La cuenta no existe.");
+						} else if (ex.getStatusCode().value() == 400) {
+							errorMessage.set("ERROR: Solicitud inválida.");
+						} else {
+							errorMessage.set("ERROR: Problema interno del servidor. Inténtalo de nuevo.");
+						}
+					}
+				} catch (RuntimeException ex) {
+					if (statusCode.get() == 200) {
+						statusCode.set(500);
+						errorMessage.set("ERROR: Problema interno del servidor. Inténtalo de nuevo.");
+					}
+				}
+			});
+			threads.add(t);
+			t.start();
+		}
 
-	    // Esperar a que todos terminen
-	    for (Thread t : threads) {
-	        try {
-	            t.join();
-	        } catch (InterruptedException e) {
-	            Thread.currentThread().interrupt();
-	        }
-	    }
+		for (Thread t : threads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
 
-	    return ResponseEntity.ok("Concurrent deposits completed (" + numThreads + " threads)");
-	}	
+		if (statusCode.get() != 200) {
+			return ResponseEntity.status(statusCode.get()).body(errorMessage.get());
+		}
+		return ResponseEntity.ok("Concurrent deposits completed (" + numThreads + " threads)");
+	} 
 	
 	@PostMapping("/test/concurrent-withdrawals")
 	public ResponseEntity<String> testConcurrentWithdrawals(@RequestBody CreateTransactionRequest request) {
-	    int numThreads = 10;
-	    BigDecimal amountPerWithdraw = request.getAmount();
-	    Long accountId = request.getFromAccountId();
+		int numThreads = 10;
+		BigDecimal amountPerWithdraw = request.getAmount();
+		Long accountId = request.getFromAccountId();
 
-	    List<Thread> threads = new java.util.ArrayList<>();
+		java.util.concurrent.atomic.AtomicReference<Integer> statusCode = new java.util.concurrent.atomic.AtomicReference<>(200);
+		java.util.concurrent.atomic.AtomicReference<String> errorMessage = new java.util.concurrent.atomic.AtomicReference<>(null);
 
-	    for (int i = 0; i < numThreads; i++) {
-	        Thread t = new Thread(() -> {
-	            try {
-	                transactionService.withdraw(accountId, amountPerWithdraw);
-	            } catch (RuntimeException e) {
-	                System.out.println("Error: " + e.getMessage());
-	            }
-	        });
-	        threads.add(t);
-	        t.start();
-	    }
+		List<Thread> threads = new java.util.ArrayList<>();
+		for (int i = 0; i < numThreads; i++) {
+			Thread t = new Thread(() -> {
+				try {
+					transactionService.withdraw(accountId, amountPerWithdraw);
+				} catch (org.springframework.web.server.ResponseStatusException ex) {
+					if (statusCode.get() == 200) {
+						statusCode.set(ex.getStatusCode().value());
+						if (ex.getStatusCode().value() == 404) {
+							errorMessage.set("ERROR: La cuenta no existe.");
+						} else if (ex.getStatusCode().value() == 400) {
+							errorMessage.set("ERROR: Saldo insuficiente.");
+						} else {
+							errorMessage.set("ERROR: Problema interno del servidor. Inténtalo de nuevo.");
+						}
+					}
+				} catch (RuntimeException ex) {
+					if (statusCode.get() == 200) {
+						statusCode.set(500);
+						errorMessage.set("ERROR: Problema interno del servidor. Inténtalo de nuevo.");
+					}
+				}
+			});
+			threads.add(t);
+			t.start();
+		}
 
-	    for (Thread t : threads) {
-	        try {
-	            t.join();
-	        } catch (InterruptedException e) {
-	            Thread.currentThread().interrupt();
-	        }
-	    }
+		for (Thread t : threads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
 
-	    return ResponseEntity.ok("Concurrent withdrawals completed (" + numThreads + " threads)");
+		if (statusCode.get() != 200) {
+			return ResponseEntity.status(statusCode.get()).body(errorMessage.get());
+		}
+		return ResponseEntity.ok("Concurrent withdrawals completed (" + numThreads + " threads)");
 	}
 
 	@PostMapping("/test/concurrent-transfers")
 	public ResponseEntity<String> testConcurrentTransfers(@RequestBody CreateTransactionRequest request) {
-	    int numThreads = 10;
-	    BigDecimal amountPerTransfer = request.getAmount();
-	    Long fromAccountId = request.getFromAccountId();
-	    Long toAccountId = request.getToAccountId();
+		int numThreads = 10;
+		BigDecimal amountPerTransfer = request.getAmount();
+		Long fromAccountId = request.getFromAccountId();
+		Long toAccountId = request.getToAccountId();
 
-	    List<Thread> threads = new java.util.ArrayList<>();
+		java.util.concurrent.atomic.AtomicReference<Integer> statusCode = new java.util.concurrent.atomic.AtomicReference<>(200);
+		java.util.concurrent.atomic.AtomicReference<String> errorMessage = new java.util.concurrent.atomic.AtomicReference<>(null);
 
-	    for (int i = 0; i < numThreads; i++) {
-	        Thread t = new Thread(() -> {
-	            try {
-	                transactionService.transfer(fromAccountId, toAccountId, amountPerTransfer);
-	            } catch (RuntimeException e) {
-	                System.out.println("Error: " + e.getMessage());
-	            }
-	        });
-	        threads.add(t);
-	        t.start();
-	    }
+		List<Thread> threads = new java.util.ArrayList<>();
+		for (int i = 0; i < numThreads; i++) {
+			Thread t = new Thread(() -> {
+				try {
+					transactionService.transfer(fromAccountId, toAccountId, amountPerTransfer);
+				} catch (org.springframework.web.server.ResponseStatusException ex) {
+					if (statusCode.get() == 200) {
+						statusCode.set(ex.getStatusCode().value());
+						if (ex.getStatusCode().value() == 404) {
+							errorMessage.set("ERROR: Cuenta origen o destino no existe.");
+						} else if (ex.getStatusCode().value() == 400) {
+							errorMessage.set("ERROR: Saldo insuficiente.");
+						} else {
+							errorMessage.set("ERROR: Problema interno del servidor. Inténtalo de nuevo.");
+						}
+					}
+				} catch (RuntimeException ex) {
+					if (statusCode.get() == 200) {
+						statusCode.set(500);
+						errorMessage.set("ERROR: Problema interno del servidor. Inténtalo de nuevo.");
+					}
+				}
+			});
+			threads.add(t);
+			t.start();
+		}
 
-	    for (Thread t : threads) {
-	        try {
-	            t.join();
-	        } catch (InterruptedException e) {
-	            Thread.currentThread().interrupt();
-	        }
-	    }
+		for (Thread t : threads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
 
-	    return ResponseEntity.ok("Concurrent transfers completed (" + numThreads + " threads)");
-	}	
+		if (statusCode.get() != 200) {
+			return ResponseEntity.status(statusCode.get()).body(errorMessage.get());
+		}
+		return ResponseEntity.ok("Concurrent transfers completed (" + numThreads + " threads)");
+	} 
 }
