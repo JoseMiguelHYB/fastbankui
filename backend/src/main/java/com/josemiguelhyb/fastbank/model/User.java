@@ -1,8 +1,15 @@
 // MODELO  -> Son las entidades JPA lo que va a representar la tabla en la BD.
 package com.josemiguelhyb.fastbank.model;
 
+import java.time.Instant;
+
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -10,6 +17,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
+@EntityListeners(AuditingEntityListener.class)
 public class User {
 	
 	@Id
@@ -24,6 +32,14 @@ public class User {
 	
 	@Column(nullable = false)
 	private String password;
+
+	@CreatedDate
+	@Column(name = "created_at", updatable = false)
+	private Instant createdAt;
+
+	@LastModifiedDate
+	@Column(name = "updated_at")
+	private Instant updatedAt;
 	
 	// Constructor vacío (obligatorio para JPA)
 	public User() {
@@ -69,8 +85,16 @@ public class User {
 		this.password = password;
 	}
 
+	public Instant getCreatedAt() {
+		return createdAt;
+	}
+
+	public Instant getUpdatedAt() {
+		return updatedAt;
+	}
+
 	@Override
 	public String toString() {
-		return "User [id=" + id + ", name=" + name + ", email=" + email + ", password=" + password + "]";
-	}	
+		return "User [id=" + id + ", name=" + name + ", email=" + email + ", password=" + password + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
+	}
 }

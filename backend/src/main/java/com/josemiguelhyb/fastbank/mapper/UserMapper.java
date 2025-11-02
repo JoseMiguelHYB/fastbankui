@@ -7,6 +7,8 @@ public class UserMapper {
 	// Convierte la entidad JPA `User` a DTO `UserResponse` que enviamos al frontend.
 	// Si en el futuro decidimos ocultar la contraseña, quitarla de UserResponse y actualizar aquí.
 	public static UserResponse toResponse(User user) {
-		return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getPassword());
+		String createdAt = user.getCreatedAt() != null ? user.getCreatedAt().toString() : null;
+		String updatedAt = user.getUpdatedAt() != null ? user.getUpdatedAt().toString() : null;
+		return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getPassword(), createdAt, updatedAt);
 	}
 }

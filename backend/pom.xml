@@ -62,6 +62,17 @@
 		    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 		    <version>2.5.0</version>
 		</dependency>
+		<!-- Solo el módulo de criptografía de Spring Security para usar BCrypt sin activar filtros de seguridad -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
+		<!-- DevTools para autorestart en desarrollo (se desactiva en jar empaquetado) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -69,6 +80,10 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<!-- Necesario para que DevTools funcione con spring-boot:run -->
+					<fork>true</fork>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

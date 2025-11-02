@@ -3,20 +3,26 @@
 package com.josemiguelhyb.fastbank.controller;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.josemiguelhyb.fastbank.dto.CreateUserRequest;
+import com.josemiguelhyb.fastbank.dto.UpdateUserRequest;
 import com.josemiguelhyb.fastbank.dto.UserResponse;
 import com.josemiguelhyb.fastbank.mapper.UserMapper;
 import com.josemiguelhyb.fastbank.model.User;
 import com.josemiguelhyb.fastbank.service.UserService;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -54,6 +60,13 @@ public class UserController {
 				.map(UserMapper::toResponse)
 				.collect(Collectors.toList());
 	}
+
+    // Paginado y ordenado: /api/users?page=0&size=10&sort=id,desc
+    @GetMapping(params = {"page","size"})
+    public Page<UserResponse> getUsersPage(Pageable pageable) {
+        Page<User> page = userService.getUsers(pageable);
+        return page.map(UserMapper::toResponse);
+    }
 	
 	// Obtener un usuario por ID
 	/***@GetMapping("/{id}")
@@ -91,4 +104,29 @@ public class UserController {
 		User newUser = userService.createUser(user);
 		return ResponseEntity.ok(UserMapper.toResponse(newUser));    
 	}   
+
+	// Actualizar usuario (PUT /api/users/{id})
+	@PutMapping("/{id}")
+	public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
+		User updates = new User();
+		updates.setName(request.getName());
+		updates.setEmail(request.getEmail());
+		updates.setPassword(request.getPassword());
+		User updated = userService.updateUser(id, updates);
+		return ResponseEntity.ok(UserMapper.toResponse(updated));
+	}
+
+	// Eliminar usuario (DELETE /api/users/{id})
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+		userService.deleteUser(id);
+		return ResponseEntity.noContent().build();
+	}
+
+	// Re-hashear contraseñas que no estén en formato BCrypt (uso de mantenimiento/demo)
+	@PostMapping("/rehash")
+	public ResponseEntity<Map<String, Integer>> rehash() {
+		int count = userService.rehashInsecurePasswords();
+		return ResponseEntity.ok(Map.of("updated", count));
+	}
 }
