@@ -49,11 +49,22 @@ public class TransactionController {
 		Transaction transaction = transactionService.transfer(request.getFromAccountId(), request.getToAccountId(), request.getAmount());
 		return ResponseEntity.ok(TransactionMapper.toResponse(transaction));		
 	}
+
+	// GET /api/transactions (LISTAR TODAS LAS TRANSACCIONES)
+	@GetMapping
+	public List<TransactionResponse> getAllTransactions(@org.springframework.web.bind.annotation.RequestParam(name = "order", defaultValue = "desc") String order) {
+		return transactionService.getAllTransactions(order)
+				.stream()
+				.map(TransactionMapper::toResponse)
+				.collect(Collectors.toList());
+	}
 		
 	// POST /api/transactions/account/{accountId} (LISTAR TRANSACCIONES DE UNA CUENTA)
 	@GetMapping("/account/{accountId}")
-	public List<TransactionResponse> getTransactionsByAccount(@PathVariable Account accountId) {
-		return transactionService.getTransactionsByAccount(accountId)
+	public List<TransactionResponse> getTransactionsByAccount(@PathVariable Long accountId) {
+		Account account = new Account();
+		account.setId(accountId);
+		return transactionService.getTransactionsByAccount(account)
 				.stream()
 				.map(TransactionMapper::toResponse)
 				.collect(Collectors.toList());		

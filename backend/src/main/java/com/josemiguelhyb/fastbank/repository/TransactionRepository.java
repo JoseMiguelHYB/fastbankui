@@ -9,4 +9,8 @@ import com.josemiguelhyb.fastbank.model.Transaction;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 	List<Transaction> findByAccount(Account account);
+	List<Transaction> findAllByOrderByCreatedAtDesc();
+	List<Transaction> findAllByOrderByCreatedAtAsc();
+	List<Transaction> findByAccountOrderByCreatedAtAsc(Account account);
+	List<Transaction> findByAccountOrderByCreatedAtDesc(Account account);
 }

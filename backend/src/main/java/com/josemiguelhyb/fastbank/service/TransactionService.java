@@ -11,4 +11,6 @@ public interface TransactionService {
 	Transaction withdraw(Long accountId, BigDecimal amount);
 	Transaction transfer(Long fromAccountId, Long toAccountId, BigDecimal amount);
 	List<Transaction> getTransactionsByAccount(Account accountId);
+	List<Transaction> getAllTransactions();
+	List<Transaction> getAllTransactions(String order);
 }

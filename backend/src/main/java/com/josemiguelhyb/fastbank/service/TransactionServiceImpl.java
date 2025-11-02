@@ -173,7 +173,21 @@ public class TransactionServiceImpl implements TransactionService {
 
 	@Override
 	public List<Transaction> getTransactionsByAccount(Account accountId) {
-		// Buscamos todas las transacciones donde la cuenta sea origen o destino
-		return transactionRepository.findByAccount(accountId);
+		// Devolver orden descendente por fecha de creación (más recientes primero)
+		return transactionRepository.findByAccountOrderByCreatedAtDesc(accountId);
+	}
+
+	@Override
+	public List<Transaction> getAllTransactions() {
+		// Por defecto, descendente para ver primero las transacciones más recientes
+		return transactionRepository.findAllByOrderByCreatedAtDesc();
+	}
+
+	@Override
+	public List<Transaction> getAllTransactions(String order) {
+		if (order != null && order.equalsIgnoreCase("asc")) {
+			return transactionRepository.findAllByOrderByCreatedAtAsc();
+		}
+		return transactionRepository.findAllByOrderByCreatedAtDesc();
 	}
 }

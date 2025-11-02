@@ -12,9 +12,6 @@ public class TransactionMapper {
         response.setAccountId(
             transaction.getAccount() != null ? transaction.getAccount().getId() : null
         );
-        response.setAccountId(
-            transaction.getAccount() != null ? transaction.getAccount().getId() : null
-        );
         response.setCreatedAt(transaction.getCreatedAt());
         return response;
     }
