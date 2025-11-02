@@ -1,7 +1,6 @@
 // CONTROLADOR
 
 package com.josemiguelhyb.fastbank.controller;
-http://localhost:8080/api/users
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +20,16 @@ import com.josemiguelhyb.fastbank.service.UserService;
 
 @RestController
 @RequestMapping("/api/users")
+// Este controlador expone los endpoints REST para usuarios usados por el frontend Angular.
+// Endpoints principales:
+//  - GET  /api/users       -> devuelve List<UserResponse> (mapeado por UserMapper)
+//  - GET  /api/users/{id}  -> devuelve UserResponse por id
+//  - POST /api/users       -> crea un usuario a partir de CreateUserRequest
+//
+// Nota para la demo/local: el frontend Angular consume estos endpoints desde
+// `frontend/src/app/user/user.ts` y renderiza la tabla en `frontend/src/app/user/user.html`.
+// Si cambias la estructura de DTOs (CreateUserRequest/UserResponse) recuerda actualizar
+// también `frontend` para que espere/mande las mismas propiedades (name,email,password).
 public class UserController {
 	
 	private final UserService userService;
@@ -36,7 +45,9 @@ public class UserController {
         return "✅ El módulo de usuarios de FastBank funciona correctamente.";
 	}
 	
-	// Obetener todos los usuarios
+	// Obtener todos los usuarios
+	// Mapea cada entidad `User` a `UserResponse` con `UserMapper`.
+	// Angular: llamada Http GET en `frontend/src/app/user/user.ts` -> loadUsers()
 	@GetMapping
 	public List<UserResponse> getAllUsers() {
 		return userService.getAlllUsers().stream()
@@ -58,15 +69,19 @@ public class UserController {
 		return userService.getUserById(id)
 				.map(user -> ResponseEntity.ok(UserMapper.toResponse(user)))
 				.orElse(ResponseEntity.notFound().build());
-	}	
-		
-	// Crear un nuevo usuario
-	/***@PostMapping
-	public ResponseEntity<User> createUser(@RequestBody User user) {
-		User newUser = userService.createUser(user);
-		return ResponseEntity.ok(newUser);		
-	}***/
-	
+	}   
+    
+	/**
+	 * Crear un nuevo usuario.
+	 * Recibe JSON con la forma de `CreateUserRequest` (name,email,password).
+	 * El servicio aplicará las validaciones (ej. email único) en `UserServiceImpl`.
+	 *
+	 * Atención: en un entorno real no deberíamos devolver ni mostrar la contraseña en claro.
+	 * Aquí se deja así para facilitar pruebas locales/demos; en producción hay que hashearla
+	 * y no devolverla nunca en `UserResponse`.
+	 *
+	 * Frontend: la función `createUser()` en `frontend/src/app/user/user.ts` hace POST a este endpoint.
+	 */
 	@PostMapping
 	public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserRequest request) {
 		User user = new User();
@@ -74,6 +89,6 @@ public class UserController {
 		user.setEmail(request.getEmail());
 		user.setPassword(request.getPassword());
 		User newUser = userService.createUser(user);
-		return ResponseEntity.ok(UserMapper.toResponse(newUser));	
-	}	
+		return ResponseEntity.ok(UserMapper.toResponse(newUser));    
+	}   
 }
