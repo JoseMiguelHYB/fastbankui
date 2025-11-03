@@ -13,6 +13,7 @@ public class TransactionMapper {
             transaction.getAccount() != null ? transaction.getAccount().getId() : null
         );
         response.setCreatedAt(transaction.getCreatedAt());
+        response.setDescription(transaction.getDescription());
         return response;
     }
 }

@@ -28,6 +28,10 @@ public class Transaction {
 	
 	@Column(nullable = false, precision = 19, scale = 2)
 	private BigDecimal amount;
+
+	// Motivo o descripción libre de la operación
+	@Column(name = "description", length = 255)
+	private String description;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
@@ -70,6 +74,14 @@ public class Transaction {
 		this.amount = amount;
 	}
 
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	public TransactionType getType() {
 		return type;
 	}
@@ -89,6 +101,6 @@ public class Transaction {
 	@Override
 	public String toString() {
 		return "Transaction [id=" + id + ", accountId=" + account+ ", amount=" + amount + ", type=" + type
-				+ ", createdAt=" + createdAt + "]";
+				+ ", description=" + description + ", createdAt=" + createdAt + "]";
 	}
 }

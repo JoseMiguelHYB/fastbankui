@@ -7,9 +7,9 @@ import com.josemiguelhyb.fastbank.model.Account;
 import com.josemiguelhyb.fastbank.model.Transaction;
 
 public interface TransactionService {
-	Transaction deposit(Long accountId, BigDecimal amount);
-	Transaction withdraw(Long accountId, BigDecimal amount);
-	Transaction transfer(Long fromAccountId, Long toAccountId, BigDecimal amount);
+	Transaction deposit(Long accountId, BigDecimal amount, String description);
+	Transaction withdraw(Long accountId, BigDecimal amount, String description);
+	Transaction transfer(Long fromAccountId, Long toAccountId, BigDecimal amount, String description);
 	List<Transaction> getTransactionsByAccount(Account accountId);
 	List<Transaction> getAllTransactions();
 	List<Transaction> getAllTransactions(String order);

@@ -9,6 +9,8 @@ public class CreateTransactionRequest {
 	
 	private Long fromAccountId;
 	private Long toAccountId;
+	// Motivo/descripcion opcional
+	private String description;
 	
 	@NotNull(message = "El monto es obligatorio.")
 	@Positive(message = "El monto debe ser positivo.")
@@ -29,6 +31,14 @@ public class CreateTransactionRequest {
 
 	public void setToAccountId(Long toAccountId) {
 		this.toAccountId = toAccountId;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public BigDecimal getAmount() {

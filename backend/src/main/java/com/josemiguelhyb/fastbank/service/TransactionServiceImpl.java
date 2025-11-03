@@ -30,7 +30,7 @@ public class TransactionServiceImpl implements TransactionService {
 
 	@Override
 	@Transactional
-	public Transaction deposit(Long accountId, BigDecimal amount) {
+	public Transaction deposit(Long accountId, BigDecimal amount, String description) {
 		
 		// Logger profesional con SLF4J
 		final Logger logger = LoggerFactory.getLogger(TransactionService.class);
@@ -53,6 +53,7 @@ public class TransactionServiceImpl implements TransactionService {
 			transaction.setAccount(account); // depósito a esa cuenta
 			transaction.setAmount(amount);
 			transaction.setType(TransactionType.DEPOSIT);
+			transaction.setDescription(description);
 			transaction.setCreatedAt(LocalDateTime.now());
 			
 			// 4 - Guardar y devolver la transacción
@@ -83,7 +84,7 @@ public class TransactionServiceImpl implements TransactionService {
 
 	@Override
 	@Transactional
-	public Transaction withdraw(Long accountId, BigDecimal amount) {
+	public Transaction withdraw(Long accountId, BigDecimal amount, String description) {
 		// ⏱️ Inicio medición de tiempo (AGREGADO)
 		long start = System.nanoTime();
 
@@ -107,6 +108,7 @@ public class TransactionServiceImpl implements TransactionService {
 			transaction.setAccount(account);
 			transaction.setAmount(amount);
 			transaction.setType(TransactionType.WITHDRAW);
+			transaction.setDescription(description);
 			transaction.setCreatedAt(LocalDateTime.now());
 
 			return transactionRepository.save(transaction);
@@ -121,7 +123,7 @@ public class TransactionServiceImpl implements TransactionService {
 
 	@Override
 	@Transactional
-	public Transaction transfer(Long fromAccountId, Long toAccountId, BigDecimal amount) {
+	public Transaction transfer(Long fromAccountId, Long toAccountId, BigDecimal amount, String description) {
 		//Inicio medición de tiempo 
 		long start = System.nanoTime();
 		
@@ -153,6 +155,7 @@ public class TransactionServiceImpl implements TransactionService {
 			outgoing.setAccount(from); // dinero sale de esta cuenta
 			outgoing.setAmount(amount.negate()); // opcional: poner negativo para salidas
 			outgoing.setType(TransactionType.TRANSFER);
+			outgoing.setDescription(description);
 			outgoing.setCreatedAt(LocalDateTime.now());
 			transactionRepository.save(outgoing);
 			
@@ -161,6 +164,7 @@ public class TransactionServiceImpl implements TransactionService {
 			incoming.setAccount(to);
 			incoming.setAmount(amount);
 			incoming.setType(TransactionType.TRANSFER);
+			incoming.setDescription(description);
 			incoming.setCreatedAt(LocalDateTime.now());		
 			transactionRepository.save(incoming);	
 			

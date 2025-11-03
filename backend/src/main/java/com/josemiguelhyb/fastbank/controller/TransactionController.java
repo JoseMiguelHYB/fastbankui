@@ -32,21 +32,21 @@ public class TransactionController {
 	// POST /api/transactions/deposit (INGRESAR DINERO)
 	@PostMapping("/deposit")
 	public ResponseEntity<TransactionResponse> deposit(@RequestBody CreateTransactionRequest request) {
-		Transaction transaction = transactionService.deposit(request.getToAccountId(), request.getAmount());
+		Transaction transaction = transactionService.deposit(request.getToAccountId(), request.getAmount(), request.getDescription());
 		return ResponseEntity.ok(TransactionMapper.toResponse(transaction));		
 	}
 	
 	// POST /api/transactions/withedraw (RETIRAR DINERO)
 	@PostMapping("/withdraw")
 	public ResponseEntity<TransactionResponse> withdraw(@RequestBody CreateTransactionRequest request) {
-		Transaction transaction = transactionService.withdraw(request.getFromAccountId(), request.getAmount());
+		Transaction transaction = transactionService.withdraw(request.getFromAccountId(), request.getAmount(), request.getDescription());
 		return ResponseEntity.ok(TransactionMapper.toResponse(transaction));		
 	}
 	
 	// POST /api/transactions/transfer (TRANSFERIR ENTRE CUENTAS)
 	@PostMapping("/transfer")
 	public ResponseEntity<TransactionResponse> transfer(@RequestBody CreateTransactionRequest request) {
-		Transaction transaction = transactionService.transfer(request.getFromAccountId(), request.getToAccountId(), request.getAmount());
+		Transaction transaction = transactionService.transfer(request.getFromAccountId(), request.getToAccountId(), request.getAmount(), request.getDescription());
 		return ResponseEntity.ok(TransactionMapper.toResponse(transaction));		
 	}
 
@@ -72,9 +72,10 @@ public class TransactionController {
 	
 	@PostMapping("/test/concurrent-deposits")
 	public ResponseEntity<String> testConcurrentDeposits(@RequestBody CreateTransactionRequest request) {
-		int numThreads = 10;
-		BigDecimal amountPerDeposit = request.getAmount();
-		Long accountId = request.getToAccountId();
+	int numThreads = 10;
+	BigDecimal amountPerDeposit = request.getAmount();
+	Long accountId = request.getToAccountId();
+	String description = request.getDescription();
 
 		java.util.concurrent.atomic.AtomicReference<Integer> statusCode = new java.util.concurrent.atomic.AtomicReference<>(200);
 		java.util.concurrent.atomic.AtomicReference<String> errorMessage = new java.util.concurrent.atomic.AtomicReference<>(null);
@@ -83,7 +84,7 @@ public class TransactionController {
 		for (int i = 0; i < numThreads; i++) {
 			Thread t = new Thread(() -> {
 				try {
-					transactionService.deposit(accountId, amountPerDeposit);
+					transactionService.deposit(accountId, amountPerDeposit, description);
 				} catch (org.springframework.web.server.ResponseStatusException ex) {
 					// Guardar el primer error significativo
 					if (statusCode.get() == 200) {
@@ -123,9 +124,10 @@ public class TransactionController {
 	
 	@PostMapping("/test/concurrent-withdrawals")
 	public ResponseEntity<String> testConcurrentWithdrawals(@RequestBody CreateTransactionRequest request) {
-		int numThreads = 10;
-		BigDecimal amountPerWithdraw = request.getAmount();
-		Long accountId = request.getFromAccountId();
+	int numThreads = 10;
+	BigDecimal amountPerWithdraw = request.getAmount();
+	Long accountId = request.getFromAccountId();
+	String description = request.getDescription();
 
 		java.util.concurrent.atomic.AtomicReference<Integer> statusCode = new java.util.concurrent.atomic.AtomicReference<>(200);
 		java.util.concurrent.atomic.AtomicReference<String> errorMessage = new java.util.concurrent.atomic.AtomicReference<>(null);
@@ -134,7 +136,7 @@ public class TransactionController {
 		for (int i = 0; i < numThreads; i++) {
 			Thread t = new Thread(() -> {
 				try {
-					transactionService.withdraw(accountId, amountPerWithdraw);
+					transactionService.withdraw(accountId, amountPerWithdraw, description);
 				} catch (org.springframework.web.server.ResponseStatusException ex) {
 					if (statusCode.get() == 200) {
 						statusCode.set(ex.getStatusCode().value());
@@ -173,10 +175,11 @@ public class TransactionController {
 
 	@PostMapping("/test/concurrent-transfers")
 	public ResponseEntity<String> testConcurrentTransfers(@RequestBody CreateTransactionRequest request) {
-		int numThreads = 10;
-		BigDecimal amountPerTransfer = request.getAmount();
-		Long fromAccountId = request.getFromAccountId();
-		Long toAccountId = request.getToAccountId();
+	int numThreads = 10;
+	BigDecimal amountPerTransfer = request.getAmount();
+	Long fromAccountId = request.getFromAccountId();
+	Long toAccountId = request.getToAccountId();
+	String description = request.getDescription();
 
 		java.util.concurrent.atomic.AtomicReference<Integer> statusCode = new java.util.concurrent.atomic.AtomicReference<>(200);
 		java.util.concurrent.atomic.AtomicReference<String> errorMessage = new java.util.concurrent.atomic.AtomicReference<>(null);
@@ -185,7 +188,7 @@ public class TransactionController {
 		for (int i = 0; i < numThreads; i++) {
 			Thread t = new Thread(() -> {
 				try {
-					transactionService.transfer(fromAccountId, toAccountId, amountPerTransfer);
+					transactionService.transfer(fromAccountId, toAccountId, amountPerTransfer, description);
 				} catch (org.springframework.web.server.ResponseStatusException ex) {
 					if (statusCode.get() == 200) {
 						statusCode.set(ex.getStatusCode().value());

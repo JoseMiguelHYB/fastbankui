@@ -9,6 +9,7 @@ public class TransactionResponse {
 	private BigDecimal amount;
 	private Long accountId; // Solo una cuenta asociada
 	private LocalDateTime createdAt;
+	private String description; // Motivo opcional
 	
 	// Getters y setters (NOSE SI SOLO GETTERS)
 	public Long getId() {
@@ -41,5 +42,11 @@ public class TransactionResponse {
 	}
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
 	}
 }
