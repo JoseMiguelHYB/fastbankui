@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.josemiguelhyb.fastbank.dto.CreateUserRequest;
 import com.josemiguelhyb.fastbank.dto.UpdateUserRequest;
@@ -116,10 +117,10 @@ public class UserController {
 		return ResponseEntity.ok(UserMapper.toResponse(updated));
 	}
 
-	// Eliminar usuario (DELETE /api/users/{id})
+	// Eliminar usuario (DELETE /api/users/{id}?cascade=true)
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-		userService.deleteUser(id);
+	public ResponseEntity<Void> deleteUser(@PathVariable Long id, @RequestParam(name = "cascade", defaultValue = "false") boolean cascade) {
+		userService.deleteUser(id, cascade);
 		return ResponseEntity.noContent().build();
 	}
 

@@ -16,6 +16,10 @@ public interface UserService {
 	User updateUser(Long id, User updates);
 	void deleteUser(Long id);
 	/**
+	 * Elimina un usuario. Si cascade=true, elimina previamente sus cuentas asociadas.
+	 */
+	void deleteUser(Long id, boolean cascade);
+	/**
 	 * Re-hashea contraseñas que no estén en formato BCrypt.
 	 * Devuelve el número de usuarios actualizados.
 	 */

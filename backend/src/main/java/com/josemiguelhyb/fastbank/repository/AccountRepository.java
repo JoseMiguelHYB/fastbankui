@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +25,12 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     // Buscar cuentas de un usuario
     List<Account> findByUserId(Long userId);
+
+    // Contar cuentas de un usuario (para verificar FK antes de borrar usuario)
+    long countByUserId(Long userId);
+
+    // Borrar todas las cuentas de un usuario (para borrado en cascada desde User)
+    @Modifying
+    @Query("DELETE FROM Account a WHERE a.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 }

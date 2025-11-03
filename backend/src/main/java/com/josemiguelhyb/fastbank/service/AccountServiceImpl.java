@@ -9,14 +9,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.josemiguelhyb.fastbank.model.Account;
 import com.josemiguelhyb.fastbank.repository.AccountRepository;
+import com.josemiguelhyb.fastbank.repository.TransactionRepository;
 
 @Service
 public class AccountServiceImpl implements AccountService {
 	
 	private final AccountRepository accountRepository;
+	private final TransactionRepository transactionRepository;
 	
-	public AccountServiceImpl(AccountRepository accountRepository) {
+	public AccountServiceImpl(AccountRepository accountRepository, TransactionRepository transactionRepository) {
 		this.accountRepository = accountRepository;
+		this.transactionRepository = transactionRepository;
 	}	
 
 	@Override
@@ -83,6 +86,8 @@ public class AccountServiceImpl implements AccountService {
 		if (!accountRepository.existsById(id)) {
 			throw new IllegalArgumentException("Cuenta no encontrada");
 		}
+		// Borrar primero las transacciones asociadas a la cuenta
+		transactionRepository.deleteByAccountId(id);
 		accountRepository.deleteById(id);
 	}
 }

@@ -10,21 +10,28 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // Es está
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.josemiguelhyb.fastbank.model.User;
+import com.josemiguelhyb.fastbank.repository.AccountRepository;
+import com.josemiguelhyb.fastbank.repository.TransactionRepository;
 import com.josemiguelhyb.fastbank.repository.UserRepository;
 
 @Service
 public class UserServiceImpl implements UserService {
 	
 	private final UserRepository userRepository;
+	private final AccountRepository accountRepository;
+	private final TransactionRepository transactionRepository;
 	private final PasswordEncoder passwordEncoder;
 	
-	public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+	public UserServiceImpl(UserRepository userRepository, AccountRepository accountRepository, TransactionRepository transactionRepository, PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
+		this.accountRepository = accountRepository;
+		this.transactionRepository = transactionRepository;
 		this.passwordEncoder = passwordEncoder;
-	}	
+	} 
 	
 	@Override
 	public List<User> getAlllUsers() {
@@ -117,10 +124,36 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@Transactional
 	public void deleteUser(Long id) {
+		deleteUser(id, false);
+	}
+
+	@Override
+	@Transactional
+	public void deleteUser(Long id, boolean cascade) {
 		if (!userRepository.existsById(id)) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado");
 		}
-		userRepository.deleteById(id);
+		// Si no es cascada, comprobar previamente si tiene cuentas para evitar 500 en commit
+		if (!cascade) {
+			long cnt = accountRepository.countByUserId(id);
+			if (cnt > 0) {
+				throw new ResponseStatusException(HttpStatus.CONFLICT,
+					"Este usuario tiene cuentas asociadas. Puedes confirmar y eliminar también sus cuentas.");
+			}
+		}
+		// Ejecutar borrado: en cascada elimina primero cuentas
+		try {
+			if (cascade) {
+				// Primero borra transacciones de todas las cuentas del usuario y luego las cuentas
+				transactionRepository.deleteByAccountUserId(id);
+				accountRepository.deleteByUserId(id);
+			}
+			userRepository.deleteById(id);
+		} catch (DataIntegrityViolationException ex) {
+			// Protección adicional si el proveedor lanza la excepción en commit
+			throw new ResponseStatusException(HttpStatus.CONFLICT,
+				"El usuario tiene cuentas asociadas. Confirma el borrado en cascada para continuar.");
+		}
 	}
 
 	@Override
