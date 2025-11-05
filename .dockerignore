@@ -1,0 +1,11 @@
+**/.git
+**/.gitignore
+**/.idea
+**/.vscode
+**/node_modules
+**/dist
+**/target
+**/.angular
+**/.mvn/wrapper/maven-wrapper.jar
+**/.DS_Store
+**/Thumbs.db

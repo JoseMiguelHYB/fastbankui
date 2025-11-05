@@ -12,6 +12,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import jakarta.persistence.Table;
 
 @Entity
@@ -34,6 +36,7 @@ public class Account {
 	// Relación ManyToOne: cada cuenta pertenece a un usuario (User)
 	@ManyToOne
 	@JoinColumn(name = "user_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE) // Si se borra el usuario -> borrar cuentas
 	private User user;
 	
 	public Account() {

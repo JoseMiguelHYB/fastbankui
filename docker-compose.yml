@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:16
+    container_name: fastbank_db
+    environment:
+      POSTGRES_DB: fastbank
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: miguel123
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    image: maven:3.9-eclipse-temurin-21
+    container_name: fastbank_backend
+    working_dir: /workspace/backend
+    command: >
+      bash -lc "mvn -q spring-boot:run"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/fastbank
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: miguel123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    volumes:
+      - ./backend:/workspace/backend
+      - maven_cache:/root/.m2
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  frontend:
+    image: node:20-bullseye
+    container_name: fastbank_frontend
+    working_dir: /workspace/frontend
+    command: >
+      bash -lc "npm ci && npx ng serve --host 0.0.0.0 --port 4200 --proxy-config proxy.docker.conf.json"
+    environment:
+      - CHOKIDAR_USEPOLLING=1
+      - NG_CLI_ANALYTICS=false
+    volumes:
+      - ./frontend:/workspace/frontend
+      - node_cache:/workspace/frontend/node_modules
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
+  maven_cache:
+  node_cache:

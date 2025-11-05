@@ -12,6 +12,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import jakarta.persistence.Table;
 
 @Entity
@@ -24,6 +26,7 @@ public class Transaction {
 	
 	@ManyToOne
 	@JoinColumn(name = "account_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE) // Si se borra la cuenta -> borrar transacciones
 	private Account account; // Identificador de la cuenta
 	
 	@Column(nullable = false, precision = 19, scale = 2)
